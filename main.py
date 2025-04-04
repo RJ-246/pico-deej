@@ -8,6 +8,7 @@ if __name__ == "__main__":
     from adafruit_hid.Keyboard import Keyboard
     from adafruit_hid.Keycode import Keycode
     from adafruit_hid.consumer_control import ConsumerControl
+    from adafruit_hid.consumer_control_code import ConsumerControlCode as ccc
     #usb_cdc.enable(data=True)
     dial1 = analogio.AnalogIn(A2)
     dial2 = analogio.AnalogIn(A1)
@@ -16,7 +17,7 @@ if __name__ == "__main__":
     analogPins = [dial1, dial2, dial3]
     
     keyboard = Keyboard(usb_hid.devices)
-    consumer_control =
+    consumer_control = ConsumerControl(usb_hid.devices)
     button3 = digitalio.DigitalInOut(GP16)
     button3.direction = digitalio.Direction.INPUT
     button3.pull = digitalio.Pull.UP
@@ -30,9 +31,9 @@ if __name__ == "__main__":
     button2.pull = digitalio.Pull.UP
     
     buttons=[
-        {"button":button1, "previous_state": button1.value, "keybind": [Keycode.ALT, Keycode.F1]},
-        {"button": button2, "previous_state": button2.value, "keybind": [Keycode.ALT, Keycode.F2]},
-        {"button":button3, "previous_state": button3.value, "keybind": [Keycode.CONTROL, Keycode.RIGHT_ARROW]},]
+        {"button":button1, "previous_state": button1.value, "keybind": [Keycode.ALT, Keycode.F1], "type": "keyboard"},
+        {"button": button2, "previous_state": button2.value, "keybind": ccc.PLAY_PAUSE, "type": "consumer_control"},
+        {"button":button3, "previous_state": button3.value, "keybind": ccc.SCAN_NEXT_TRACK, "type": "consumer_control"},]
     
     dialValues = [0, 0, 0]
     
@@ -88,8 +89,11 @@ if __name__ == "__main__":
                 #print("button down")
                 #print(button.value)
                 if each["button"].value == False:
-                    keyboard.press(each["keybind"][0], each["keybind"][1])
-                    keyboard.release_all()
+                    if each["type"] == "keyboard":
+                        keyboard.press(each["keybind"][0], each["keybind"][1])
+                        keyboard.release_all()
+                    if each["type"] == "consumer_control":
+                        consumer_control.send(each["keybind"])
             each["previous_state"] = cur_state
 
 
